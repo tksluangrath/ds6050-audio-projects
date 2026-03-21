@@ -82,24 +82,17 @@ def make_loader(split, data_root, filter_method, batch_size, shuffle, device):
 def run(model_cls, train_fn, evaluate_fn, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Set up output directory
+    # Set up output directory (consistent name regardless of eval_only)
     run_name = f"{args.model}_{args.train_split}_{args.val_split}_{args.filter_method}"
     out_dir = os.path.join("runs", run_name)
     os.makedirs(out_dir, exist_ok=True)
 
     checkpoint_path = os.path.join(out_dir, "best_model.pt")
-    log_path = os.path.join(out_dir, "log.txt")
+    log_path = os.path.join(out_dir, "eval_log.txt" if args.eval_only else "log.txt")
 
-    # Start logging everything to file + terminal
     tee = Tee(log_path)
     sys.stdout = tee
 
-    # Save config
-    with open(os.path.join(out_dir, "config.txt"), "w") as f:
-        for k, v in vars(args).items():
-            f.write(f"{k}: {v}\n")
-
-    # Print run info
     print(f"Using device: {device}")
     print(f"Run name:      {run_name}")
     print(f"Output dir:    {out_dir}")
@@ -108,10 +101,51 @@ def run(model_cls, train_fn, evaluate_fn, args):
     print(f"Val split:     {args.val_split}")
     print(f"Test split:    {args.test_split or 'none'}")
     print(f"Filter method: {args.filter_method}")
-    print(f"Epochs:        {args.epochs}  |  Batch size: {args.batch_size}  |  LR: {args.lr}  |  Clip: {args.clip}")
+    print(f"Mode:          {'eval only' if args.eval_only else 'train + eval'}")
+    if not args.eval_only:
+        print(f"Epochs:        {args.epochs}  |  Batch size: {args.batch_size}  |  LR: {args.lr}  |  Clip: {args.clip}")
     print()
 
-    # Load data
+    criterion = nn.CrossEntropyLoss()
+    model = model_cls().to(device)
+
+    # ── Eval-only mode ────────────────────────────────────────────────────────
+    if args.eval_only:
+        if not os.path.exists(checkpoint_path):
+            print(f"ERROR: No checkpoint found at {checkpoint_path}")
+            print("Train the model first without --eval_only.")
+            tee.close()
+            return
+
+        print(f"Loading checkpoint from {checkpoint_path}")
+        model.load_state_dict(torch.load(checkpoint_path, map_location=device))
+
+        if args.test_split:
+            print(f"Loading {args.test_split} data...")
+            test_loader = make_loader(
+                args.test_split, args.data_root, args.filter_method,
+                args.batch_size, shuffle=False, device=device,
+            )
+            test_loss, test_acc = evaluate_fn(model, test_loader, criterion)
+            print(f"Test split: {args.test_split} | Loss: {test_loss:.3f} | Acc: {test_acc*100:.2f}%")
+        else:
+            print("Loading validation data...")
+            val_loader = make_loader(
+                args.val_split, args.data_root, args.filter_method,
+                args.batch_size, shuffle=False, device=device,
+            )
+            val_loss, val_acc = evaluate_fn(model, val_loader, criterion)
+            print(f"Val split:  {args.val_split} | Loss: {val_loss:.3f} | Acc: {val_acc*100:.2f}%")
+
+        print("\nDone.")
+        tee.close()
+        return
+
+    # ── Training mode ─────────────────────────────────────────────────────────
+    with open(os.path.join(out_dir, "config.txt"), "w") as f:
+        for k, v in vars(args).items():
+            f.write(f"{k}: {v}\n")
+
     print("Loading training data...")
     train_loader = make_loader(
         args.train_split, args.data_root, args.filter_method,
@@ -132,12 +166,7 @@ def run(model_cls, train_fn, evaluate_fn, args):
             args.batch_size, shuffle=False, device=device,
         )
 
-    # Model setup
-    model = model_cls().to(device)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    criterion = nn.CrossEntropyLoss()
-
-    # Training loop
     best_val_loss = float("inf")
 
     for epoch in range(args.epochs):
@@ -155,7 +184,6 @@ def run(model_cls, train_fn, evaluate_fn, args):
 
         print(f"Epoch {epoch+1:02} | {elapsed:.1f}s | Train Loss: {train_loss:.3f} | Val Loss: {val_loss:.3f} | Val Acc: {val_acc*100:.2f}%{marker}")
 
-    # Test evaluation
     if test_loader is not None:
         print(f"\nLoading best checkpoint for test evaluation...")
         model.load_state_dict(torch.load(checkpoint_path, map_location=device))
@@ -180,6 +208,7 @@ def parse_args():
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--clip", type=float, default=1.0)
     parser.add_argument("--data_root", default=".")
+    parser.add_argument("--eval_only", action="store_true")
     return parser.parse_args()
 
 

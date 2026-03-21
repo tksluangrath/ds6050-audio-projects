@@ -1,0 +1,111 @@
+Ablation Run List
+=================
+All training runs use --epochs 50 --batch_size 64 --lr 1e-3 --clip 1.0 --data_root .
+Run from: /Users/landy/Documents/MSDS/DS6050/Audio Project/ds6050-audio-projects/
+
+For each group: run the TRAIN command first, then the 5 EVAL commands.
+Eval commands load the saved checkpoint -- no retraining.
+
+
+GROUP 1: CNN | train_noisy | no filter  (baseline)
+---------------------------------------------------
+TRAIN:
+1.  python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method none
+
+EVAL:
+2.  python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method none --eval_only --test_split test_clean
+3.  python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method none --eval_only --test_split test_20db
+4.  python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method none --eval_only --test_split test_10db
+5.  python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method none --eval_only --test_split test_0db
+6.  python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method none --eval_only --test_split test_m5db
+
+
+GROUP 2: CNN | train_noisy | spectral gating
+--------------------------------------------
+TRAIN:
+7.  python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method spectral_gating
+
+EVAL:
+8.  python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method spectral_gating --eval_only --test_split test_clean
+9.  python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method spectral_gating --eval_only --test_split test_20db
+10. python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method spectral_gating --eval_only --test_split test_10db
+11. python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method spectral_gating --eval_only --test_split test_0db
+12. python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method spectral_gating --eval_only --test_split test_m5db
+
+
+GROUP 3: CNN | train_noisy | bandpass
+--------------------------------------
+TRAIN:
+13. python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method bandpass
+
+EVAL:
+14. python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method bandpass --eval_only --test_split test_clean
+15. python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method bandpass --eval_only --test_split test_20db
+16. python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method bandpass --eval_only --test_split test_10db
+17. python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method bandpass --eval_only --test_split test_0db
+18. python Model/runner.py --model cnn --train_split train_noisy --val_split val_clean --filter_method bandpass --eval_only --test_split test_m5db
+
+
+GROUP 4: AST | train_noisy | no filter
+---------------------------------------
+TRAIN:
+19. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method none
+
+EVAL:
+20. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method none --eval_only --test_split test_clean
+21. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method none --eval_only --test_split test_20db
+22. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method none --eval_only --test_split test_10db
+23. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method none --eval_only --test_split test_0db
+24. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method none --eval_only --test_split test_m5db
+
+
+GROUP 5: AST | train_noisy | spectral gating
+---------------------------------------------
+TRAIN:
+25. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method spectral_gating
+
+EVAL:
+26. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method spectral_gating --eval_only --test_split test_clean
+27. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method spectral_gating --eval_only --test_split test_20db
+28. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method spectral_gating --eval_only --test_split test_10db
+29. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method spectral_gating --eval_only --test_split test_0db
+30. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method spectral_gating --eval_only --test_split test_m5db
+
+
+GROUP 6: AST | train_noisy | bandpass
+--------------------------------------
+TRAIN:
+31. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method bandpass
+
+EVAL:
+32. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method bandpass --eval_only --test_split test_clean
+33. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method bandpass --eval_only --test_split test_20db
+34. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method bandpass --eval_only --test_split test_10db
+35. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method bandpass --eval_only --test_split test_0db
+36. python Model/runner.py --model ast --train_split train_noisy --val_split val_clean --filter_method bandpass --eval_only --test_split test_m5db
+
+
+GROUP 7: CNN | train_clean | no filter  (clean training baseline)
+------------------------------------------------------------------
+TRAIN:
+37. python Model/runner.py --model cnn --train_split train_clean --val_split val_clean --filter_method none
+
+EVAL:
+38. python Model/runner.py --model cnn --train_split train_clean --val_split val_clean --filter_method none --eval_only --test_split test_clean
+39. python Model/runner.py --model cnn --train_split train_clean --val_split val_clean --filter_method none --eval_only --test_split test_20db
+40. python Model/runner.py --model cnn --train_split train_clean --val_split val_clean --filter_method none --eval_only --test_split test_10db
+41. python Model/runner.py --model cnn --train_split train_clean --val_split val_clean --filter_method none --eval_only --test_split test_0db
+42. python Model/runner.py --model cnn --train_split train_clean --val_split val_clean --filter_method none --eval_only --test_split test_m5db
+
+
+GROUP 8: AST | train_clean | no filter  (clean training baseline)
+------------------------------------------------------------------
+TRAIN:
+43. python Model/runner.py --model ast --train_split train_clean --val_split val_clean --filter_method none
+
+EVAL:
+44. python Model/runner.py --model ast --train_split train_clean --val_split val_clean --filter_method none --eval_only --test_split test_clean
+45. python Model/runner.py --model ast --train_split train_clean --val_split val_clean --filter_method none --eval_only --test_split test_20db
+46. python Model/runner.py --model ast --train_split train_clean --val_split val_clean --filter_method none --eval_only --test_split test_10db
+47. python Model/runner.py --model ast --train_split train_clean --val_split val_clean --filter_method none --eval_only --test_split test_0db
+48. python Model/runner.py --model ast --train_split train_clean --val_split val_clean --filter_method none --eval_only --test_split test_m5db
