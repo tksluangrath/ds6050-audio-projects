@@ -1,4 +1,4 @@
 speech_commands_v0.02.tar.gz
 data/
 __pycache__/
-ablation_runs.txt/
+ablation_runs.txt

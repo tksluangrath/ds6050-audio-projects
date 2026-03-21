@@ -1,7 +1,7 @@
 import torch
 
 
-def train(model, iterator, optimizer, criterion, clip):
+def train(model, iterator, optimizer, criterion, clip, scheduler=None):
     model.train()
     epoch_loss = 0
 
@@ -21,5 +21,8 @@ def train(model, iterator, optimizer, criterion, clip):
         optimizer.step()
 
         epoch_loss += loss.item()
+
+    if scheduler is not None:
+        scheduler.step()
 
     return epoch_loss / len(iterator)

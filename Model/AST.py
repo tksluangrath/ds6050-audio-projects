@@ -1,79 +1,76 @@
 import torch
 import torch.nn as nn
-import math
-
-
-class PatchEmbedding(nn.Module):
-    def __init__(self, in_channels, patch_size, fstride, tstride, embed_dim):
-        super().__init__()
-        self.projection = nn.Conv2d(
-            in_channels,
-            embed_dim,
-            kernel_size=(patch_size, patch_size),
-            stride=(fstride, tstride),
-            bias=False,
-        )
-
-    def forward(self, x):
-        # (B, C, F, T) -> (B, embed_dim, F', T') -> (B, N, embed_dim)
-        x = self.projection(x)
-        x = x.flatten(start_dim=2).transpose(1, 2)
-        return x
+import torch.nn.functional as F
+import timm
 
 
 class AST(nn.Module):
     def __init__(
         self,
         num_classes=12,
-        in_channels=1,
+        n_mels=128,
+        time_frames=101,
         patch_size=16,
         fstride=10,
         tstride=10,
-        embed_dim=192,
-        num_heads=4,
-        num_layers=4,
-        mlp_dim=768,
-        dropout=0.1,
-        freq_bins=40,
-        time_frames=101,
     ):
         super().__init__()
 
-        self.patch_embedding = PatchEmbedding(
-            in_channels, patch_size, fstride, tstride, embed_dim
+        deit = timm.create_model("deit_base_distilled_patch16_224", pretrained=True)
+
+        # Patch embedding: adapt 3-channel DeiT projection to 1-channel
+        old_proj = deit.patch_embed.proj  # Conv2d(3, 768, kernel_size=16, stride=16)
+        self.patch_embed = nn.Conv2d(
+            1, 768, kernel_size=patch_size, stride=(fstride, tstride)
+        )
+        with torch.no_grad():
+            self.patch_embed.weight.copy_(
+                old_proj.weight.mean(dim=1, keepdim=True)
+            )
+            self.patch_embed.bias.copy_(old_proj.bias)
+
+        # Compute output grid size
+        n_freq = (n_mels - patch_size) // fstride + 1      # (128-16)//10 + 1 = 12
+        n_time = (time_frames - patch_size) // tstride + 1  # (101-16)//10 + 1 = 9
+
+        # Interpolate positional embeddings from DeiT's 14x14 grid to n_freq x n_time
+        # DeiT-distilled pos_embed shape: (1, 198, 768) = 1 CLS + 1 distill + 196 patches
+        old_pos = deit.pos_embed
+        cls_pos = old_pos[:, :1, :]      # (1, 1, 768)
+        patch_pos = old_pos[:, 2:, :]    # (1, 196, 768) — skip distillation token at index 1
+        patch_pos = patch_pos.reshape(1, 768, 14, 14).float()
+        patch_pos = F.interpolate(
+            patch_pos, size=(n_freq, n_time), mode="bilinear", align_corners=False
+        )
+        patch_pos = patch_pos.flatten(2).transpose(1, 2)    # (1, n_patches, 768)
+        self.pos_embed = nn.Parameter(
+            torch.cat([cls_pos, patch_pos], dim=1)           # (1, 1+n_patches, 768)
         )
 
-        n_freq = (freq_bins - patch_size) // fstride + 1
-        n_time = (time_frames - patch_size) // tstride + 1
-        n_patches = n_freq * n_time
+        # CLS token
+        self.cls_token = nn.Parameter(deit.cls_token.data.clone())
 
-        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
-        self.positional_embedding = nn.Parameter(
-            torch.zeros(1, n_patches + 1, embed_dim)
-        )
+        # Transformer encoder blocks and layer norm
+        self.blocks = deit.blocks
+        self.norm = deit.norm
 
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=embed_dim,
-            nhead=num_heads,
-            dim_feedforward=mlp_dim,
-            dropout=dropout,
-            batch_first=True,
-        )
-        self.transformer_encoder = nn.TransformerEncoder(
-            encoder_layer, num_layers=num_layers
-        )
-        self.layer_norm = nn.LayerNorm(embed_dim)
-        self.head = nn.Linear(embed_dim, num_classes)
+        # Classification head
+        self.head = nn.Linear(768, num_classes)
+        nn.init.xavier_uniform_(self.head.weight)
+        nn.init.zeros_(self.head.bias)
+
+        del deit
 
     def forward(self, x):
-        x = self.patch_embedding(x)
+        # x: (B, 1, n_mels, time_frames)
+        x = self.patch_embed(x)              # (B, 768, n_freq, n_time)
+        x = x.flatten(2).transpose(1, 2)    # (B, n_patches, 768)
+
         B = x.shape[0]
-
         cls = self.cls_token.expand(B, -1, -1)
-        x = torch.cat([cls, x], dim=1)
-        x = x + self.positional_embedding
+        x = torch.cat([cls, x], dim=1)      # (B, 1+n_patches, 768)
+        x = x + self.pos_embed
 
-        x = self.transformer_encoder(x)
-        x = self.layer_norm(x)
-
+        x = self.blocks(x)
+        x = self.norm(x)
         return self.head(x[:, 0])

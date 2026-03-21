@@ -8,11 +8,12 @@ HOP_LENGTH = 160  # 10ms hop
 N_MELS = 40
 
 
-def compute_stft(waveform: torch.Tensor) -> torch.Tensor:
+def compute_stft(waveform: torch.Tensor, n_fft: int = N_FFT) -> torch.Tensor:
     """Compute complex STFT spectrogram.
 
     Args:
         waveform: Waveform tensor. Shape (n_samples,) or (1, n_samples).
+        n_fft: FFT size (default: 400).
 
     Returns:
         Complex STFT of shape (n_freqs, n_frames).
@@ -20,29 +21,30 @@ def compute_stft(waveform: torch.Tensor) -> torch.Tensor:
     if waveform.ndim == 2:
         waveform = waveform.squeeze(0)
 
-    window = torch.hann_window(N_FFT, device=waveform.device)
+    window = torch.hann_window(n_fft, device=waveform.device)
 
     stft = torch.stft(
         waveform,
-        n_fft=N_FFT,
+        n_fft=n_fft,
         hop_length=HOP_LENGTH,
-        win_length=N_FFT,
+        win_length=n_fft,
         window=window,
         return_complex=True,
     )
     return stft  # (n_freqs, n_frames)
 
 
-def compute_power_spectrogram(waveform: torch.Tensor) -> torch.Tensor:
+def compute_power_spectrogram(waveform: torch.Tensor, n_fft: int = N_FFT) -> torch.Tensor:
     """Compute power spectrogram.
 
     Args:
         waveform: Waveform tensor. Shape (n_samples,) or (1, n_samples).
+        n_fft: FFT size (default: 400).
 
     Returns:
         Power spectrogram of shape (n_freqs, n_frames).
     """
-    stft = compute_stft(waveform)
+    stft = compute_stft(waveform, n_fft=n_fft)
     return torch.abs(stft) ** 2  # (n_freqs, n_frames)
 
 
@@ -86,6 +88,7 @@ def apply_spectral_gating(
     omega: float = 1.5,
     delta: float = 0.02,
     noise_frame: int = 5,
+    n_fft: int = N_FFT,
 ) -> torch.Tensor:
     """Apply spectral gating to reduce noise.
 
@@ -106,7 +109,7 @@ def apply_spectral_gating(
     Returns:
         Denoised power spectrogram of shape (n_freqs, n_frames).
     """
-    power_spec = compute_power_spectrogram(waveform)
+    power_spec = compute_power_spectrogram(waveform, n_fft=n_fft)
     noise_profile = estimate_noise(power_spec, noise_frame)
     return spectral_subtraction(power_spec, noise_profile, omega, delta)
 
@@ -133,16 +136,18 @@ def apply_bandpass(
     return filtered
 
 
-def power_to_log_mel(power_spec: torch.Tensor) -> torch.Tensor:
+def power_to_log_mel(power_spec: torch.Tensor, n_mels: int = N_MELS, n_fft: int = N_FFT) -> torch.Tensor:
     """Convert power spectrogram to log-mel spectrogram.
 
     Args:
         power_spec: Power spectrogram of shape (n_freqs, n_frames).
+        n_mels: Number of mel filter banks (default: 40).
+        n_fft: FFT size used to produce power_spec (default: 400).
 
     Returns:
         Log-mel spectrogram of shape (n_mels, n_frames).
     """
-    mel_scale = T.MelScale(n_mels=N_MELS, sample_rate=TARGET, n_stft=N_FFT // 2 + 1)
+    mel_scale = T.MelScale(n_mels=n_mels, sample_rate=TARGET, n_stft=n_fft // 2 + 1)
 
     if power_spec.ndim == 2:
         power_spec = power_spec.unsqueeze(0)  # (1, n_freqs, n_frames)
@@ -155,6 +160,8 @@ def power_to_log_mel(power_spec: torch.Tensor) -> torch.Tensor:
 def get_log_mel_spectrogram(
     waveform: torch.Tensor,
     filter_method: str = "none",
+    n_mels: int = N_MELS,
+    n_fft: int = N_FFT,
     **kwargs,
 ) -> torch.Tensor:
     """Convert waveform to log-mel spectrogram with optional preprocessing.
@@ -162,13 +169,15 @@ def get_log_mel_spectrogram(
     Args:
         waveform: Input waveform of shape (n_samples,).
         filter_method: One of "none", "bandpass", or "spectral_gating".
+        n_mels: Number of mel filter banks (default: 40).
+        n_fft: FFT size (default: 400). Use 1024 for 128 mel bins to avoid empty filterbanks.
         **kwargs: Passed through to the chosen filter function.
 
     Returns:
         Log-mel spectrogram of shape (1, n_mels, n_frames).
     """
     if filter_method == "none":
-        power = compute_power_spectrogram(waveform)
+        power = compute_power_spectrogram(waveform, n_fft=n_fft)
     elif filter_method == "bandpass":
         filtered = apply_bandpass(
             waveform,
@@ -176,13 +185,14 @@ def get_log_mel_spectrogram(
             high_freq=kwargs.get("high_freq", 3400.0),
             sample_rate=kwargs.get("sample_rate", TARGET),
         )
-        power = compute_power_spectrogram(filtered)
+        power = compute_power_spectrogram(filtered, n_fft=n_fft)
     elif filter_method == "spectral_gating":
         power = apply_spectral_gating(
             waveform,
             omega=kwargs.get("omega", 1.5),
             delta=kwargs.get("delta", 0.02),
             noise_frame=kwargs.get("noise_frame", 5),
+            n_fft=n_fft,
         )
     else:
         raise ValueError(
@@ -190,5 +200,5 @@ def get_log_mel_spectrogram(
             "Choose from 'none', 'bandpass', 'spectral_gating'."
         )
 
-    log_mel = power_to_log_mel(power)
+    log_mel = power_to_log_mel(power, n_mels=n_mels, n_fft=n_fft)
     return log_mel.unsqueeze(0)  # (1, n_mels, n_frames)
