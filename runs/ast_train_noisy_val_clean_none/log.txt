@@ -1,0 +1,47 @@
+Using device: cuda
+Run name:      ast_train_noisy_val_clean_none
+Output dir:    runs/ast_train_noisy_val_clean_none
+Model:         ast
+Train split:   train_noisy
+Val split:     val_clean
+Test split:    none
+Filter method: none
+Mel bins:      128  |  N_FFT: 1024
+Mode:          train + eval
+Epochs:        30  |  Batch size: 64  |  LR: 1e-05  |  Clip: 1.0
+Scheduler:     warmup(5) + cosine
+
+Loading training data...
+Loading validation data...
+Epoch 01 | 902.1s | Train Loss: 1.878 | Val Loss: 1.701 | Val Acc: 59.95% | LR: 2.08e-06 *
+Epoch 02 | 737.0s | Train Loss: 1.353 | Val Loss: 1.044 | Val Acc: 67.59% | LR: 4.06e-06 *
+Epoch 03 | 1084.8s | Train Loss: 0.979 | Val Loss: 0.679 | Val Acc: 76.91% | LR: 6.04e-06 *
+Epoch 04 | 1154.9s | Train Loss: 0.728 | Val Loss: 0.483 | Val Acc: 84.11% | LR: 8.02e-06 *
+Epoch 05 | 1038.7s | Train Loss: 0.551 | Val Loss: 0.395 | Val Acc: 87.03% | LR: 1.00e-05 *
+Epoch 06 | 982.5s | Train Loss: 0.403 | Val Loss: 0.337 | Val Acc: 89.16% | LR: 9.96e-06 *
+Epoch 07 | 887.8s | Train Loss: 0.255 | Val Loss: 0.357 | Val Acc: 88.67% | LR: 9.84e-06
+Epoch 08 | 949.7s | Train Loss: 0.134 | Val Loss: 0.368 | Val Acc: 89.67% | LR: 9.65e-06
+Epoch 09 | 1065.6s | Train Loss: 0.057 | Val Loss: 0.416 | Val Acc: 89.50% | LR: 9.39e-06
+Epoch 10 | 939.1s | Train Loss: 0.023 | Val Loss: 0.446 | Val Acc: 89.85% | LR: 9.05e-06
+Epoch 11 | 1054.2s | Train Loss: 0.012 | Val Loss: 0.483 | Val Acc: 89.42% | LR: 8.66e-06
+Epoch 12 | 953.2s | Train Loss: 0.006 | Val Loss: 0.526 | Val Acc: 90.54% | LR: 8.21e-06
+Epoch 13 | 945.6s | Train Loss: 0.003 | Val Loss: 0.597 | Val Acc: 90.55% | LR: 7.70e-06
+Epoch 14 | 992.9s | Train Loss: 0.002 | Val Loss: 0.581 | Val Acc: 90.39% | LR: 7.16e-06
+Epoch 15 | 916.3s | Train Loss: 0.002 | Val Loss: 0.617 | Val Acc: 89.90% | LR: 6.58e-06
+Epoch 16 | 839.5s | Train Loss: 0.001 | Val Loss: 0.633 | Val Acc: 90.62% | LR: 5.98e-06
+Epoch 17 | 840.9s | Train Loss: 0.002 | Val Loss: 0.714 | Val Acc: 90.14% | LR: 5.36e-06
+Epoch 18 | 1042.7s | Train Loss: 0.001 | Val Loss: 0.726 | Val Acc: 90.48% | LR: 4.74e-06
+Epoch 19 | 1365.6s | Train Loss: 0.000 | Val Loss: 0.672 | Val Acc: 90.35% | LR: 4.12e-06
+Epoch 20 | 1083.1s | Train Loss: 0.000 | Val Loss: 0.701 | Val Acc: 90.16% | LR: 3.52e-06
+Epoch 21 | 1193.7s | Train Loss: 0.000 | Val Loss: 0.697 | Val Acc: 91.05% | LR: 2.94e-06
+Epoch 22 | 1151.1s | Train Loss: 0.000 | Val Loss: 0.726 | Val Acc: 91.07% | LR: 2.40e-06
+Epoch 23 | 1159.9s | Train Loss: 0.000 | Val Loss: 0.695 | Val Acc: 91.16% | LR: 1.89e-06
+Epoch 24 | 1295.2s | Train Loss: 0.000 | Val Loss: 0.702 | Val Acc: 91.17% | LR: 1.44e-06
+Epoch 25 | 1338.9s | Train Loss: 0.000 | Val Loss: 0.708 | Val Acc: 91.28% | LR: 1.05e-06
+Epoch 26 | 1711.7s | Train Loss: 0.000 | Val Loss: 0.715 | Val Acc: 91.32% | LR: 7.12e-07
+Epoch 27 | 1728.6s | Train Loss: 0.000 | Val Loss: 0.720 | Val Acc: 91.26% | LR: 4.48e-07
+Epoch 28 | 1670.9s | Train Loss: 0.000 | Val Loss: 0.726 | Val Acc: 91.25% | LR: 2.56e-07
+Epoch 29 | 1452.0s | Train Loss: 0.000 | Val Loss: 0.728 | Val Acc: 91.21% | LR: 1.39e-07
+Epoch 30 | 1415.5s | Train Loss: 0.000 | Val Loss: 0.732 | Val Acc: 91.23% | LR: 1.00e-07
+
+Done.

@@ -1,0 +1,16 @@
+Using device: cpu
+Run name:      cnn_train_noisy_val_clean_bandpass
+Output dir:    runs/cnn_train_noisy_val_clean_bandpass
+Model:         cnn
+Train split:   train_noisy
+Val split:     val_clean
+Test split:    test_m5db
+Filter method: bandpass
+Mel bins:      40  |  N_FFT: 400
+Mode:          eval only
+
+Loading checkpoint from runs/cnn_train_noisy_val_clean_bandpass/best_model.pt
+Loading test_m5db data...
+Test split: test_m5db | Loss: 0.665 | Acc: 81.94%
+
+Done.
