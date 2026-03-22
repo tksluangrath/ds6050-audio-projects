@@ -1,4 +1,4 @@
-Using device: cpu
+Using device: cuda
 Run name:      cnn_train_noisy_val_clean_none
 Output dir:    runs/cnn_train_noisy_val_clean_none
 Model:         cnn

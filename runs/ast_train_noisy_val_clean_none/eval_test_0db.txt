@@ -1,0 +1,16 @@
+Using device: cuda
+Run name:      ast_train_noisy_val_clean_none
+Output dir:    runs/ast_train_noisy_val_clean_none
+Model:         ast
+Train split:   train_noisy
+Val split:     val_clean
+Test split:    test_0db
+Filter method: none
+Mel bins:      128  |  N_FFT: 1024
+Mode:          eval only
+
+Loading checkpoint from runs/ast_train_noisy_val_clean_none/best_model.pt
+Loading test_0db data...
+Test split: test_0db | Loss: 0.630 | Acc: 79.84%
+
+Done.

@@ -1,0 +1,16 @@
+Using device: cuda
+Run name:      cnn_train_noisy_val_clean_none
+Output dir:    runs/cnn_train_noisy_val_clean_none
+Model:         cnn
+Train split:   train_noisy
+Val split:     val_clean
+Test split:    test_0db
+Filter method: none
+Mel bins:      40  |  N_FFT: 400
+Mode:          eval only
+
+Loading checkpoint from runs/cnn_train_noisy_val_clean_none/best_model.pt
+Loading test_0db data...
+Test split: test_0db | Loss: 0.471 | Acc: 85.48%
+
+Done.
