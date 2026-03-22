@@ -3,3 +3,4 @@ data/
 __pycache__/
 ablation_runs.txt
 *.pt
+.DS_Store
