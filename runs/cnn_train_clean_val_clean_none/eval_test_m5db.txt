@@ -1,0 +1,16 @@
+Using device: cuda
+Run name:      cnn_train_clean_val_clean_none
+Output dir:    runs/cnn_train_clean_val_clean_none
+Model:         cnn
+Train split:   train_clean
+Val split:     val_clean
+Test split:    test_m5db
+Filter method: none
+Mel bins:      40  |  N_FFT: 400
+Mode:          eval only
+
+Loading checkpoint from runs/cnn_train_clean_val_clean_none/best_model.pt
+Loading test_m5db data...
+Test split: test_m5db | Loss: 1.849 | Acc: 69.78%
+
+Done.
