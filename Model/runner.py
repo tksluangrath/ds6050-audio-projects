@@ -115,7 +115,11 @@ def run(model_cls, train_fn, evaluate_fn, args):
     os.makedirs(out_dir, exist_ok=True)
 
     checkpoint_path = os.path.join(out_dir, "best_model.pt")
-    log_path = os.path.join(out_dir, "eval_log.txt" if args.eval_only else "log.txt")
+    if args.eval_only:
+        log_name = f"eval_{args.test_split}.txt" if args.test_split else "eval_log.txt"
+    else:
+        log_name = "log.txt"
+    log_path = os.path.join(out_dir, log_name)
 
     tee = Tee(log_path)
     sys.stdout = tee
