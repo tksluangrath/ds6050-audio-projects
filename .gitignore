@@ -5,3 +5,4 @@ ablation_runs.txt
 *.pt
 .DS_Store
 dataset/
+runs.zip
