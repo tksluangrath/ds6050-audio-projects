@@ -3,6 +3,7 @@ import os
 import sys
 import time
 
+import random, numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -12,6 +13,7 @@ import soundfile as sf
 from torch.utils.data import Dataset, DataLoader
 
 from audio_preprocessing import get_log_mel_spectrogram
+from analysis import get_analysis
 
 SAMPLE_RATE = 16000
 
@@ -103,6 +105,14 @@ def build_scheduler(optimizer, model_type, epochs):
 def run(model_cls, train_fn, evaluate_fn, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # Seed
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.backends.cudnn.deterministic=True
+    torch.backends.cudnn.benchmark=False
+    
     # Resolve model-specific defaults
     defaults = MODEL_DEFAULTS[args.model]
     n_mels = defaults["n_mels"]
@@ -110,7 +120,7 @@ def run(model_cls, train_fn, evaluate_fn, args):
     lr = args.lr if args.lr is not None else defaults["lr"]
 
     # Set up output directory (consistent name regardless of eval_only)
-    run_name = f"{args.model}_{args.train_split}_{args.val_split}_{args.filter_method}"
+    run_name = f"{args.model}_{args.train_split}_{args.val_split}_{args.filter_method}_seed{args.seed}"
     out_dir = os.path.join("runs", run_name)
     os.makedirs(out_dir, exist_ok=True)
 
@@ -160,15 +170,16 @@ def run(model_cls, train_fn, evaluate_fn, args):
                 args.test_split, args.data_root, args.filter_method,
                 args.batch_size, shuffle=False, device=device, n_mels=n_mels, n_fft=n_fft,
             )
-            test_loss, test_acc = evaluate_fn(model, test_loader, criterion)
+            test_loss, test_acc, test_preds, test_labels = evaluate_fn(model, test_loader, criterion)
             print(f"Test split: {args.test_split} | Loss: {test_loss:.3f} | Acc: {test_acc*100:.2f}%")
+            get_analysis(test_preds, test_labels)
         else:
             print("Loading validation data...")
             val_loader = make_loader(
                 args.val_split, args.data_root, args.filter_method,
                 args.batch_size, shuffle=False, device=device, n_mels=n_mels, n_fft=n_fft,
             )
-            val_loss, val_acc = evaluate_fn(model, val_loader, criterion)
+            val_loss, val_acc, _, _ = evaluate_fn(model, val_loader, criterion)
             print(f"Val split:  {args.val_split} | Loss: {val_loss:.3f} | Acc: {val_acc*100:.2f}%")
 
         print("\nDone.")
@@ -209,7 +220,7 @@ def run(model_cls, train_fn, evaluate_fn, args):
     for epoch in range(args.epochs):
         start = time.time()
         train_loss = train_fn(model, train_loader, optimizer, criterion, args.clip, scheduler)
-        val_loss, val_acc = evaluate_fn(model, val_loader, criterion)
+        val_loss, val_acc, _, _ = evaluate_fn(model, val_loader, criterion)
         elapsed = time.time() - start
 
         if val_loss < best_val_loss:
@@ -225,8 +236,9 @@ def run(model_cls, train_fn, evaluate_fn, args):
     if test_loader is not None:
         print(f"\nLoading best checkpoint for test evaluation...")
         model.load_state_dict(torch.load(checkpoint_path, map_location=device))
-        test_loss, test_acc = evaluate_fn(model, test_loader, criterion)
+        test_loss, test_acc, test_preds, test_labels = evaluate_fn(model, test_loader, criterion)
         print(f"Test Loss: {test_loss:.3f} | Test Acc: {test_acc*100:.2f}%")
+        get_analysis(test_preds, test_labels)
 
     print("\nDone.")
     tee.close()
@@ -243,6 +255,7 @@ def parse_args():
     parser.add_argument("--filter_method", choices=["none", "bandpass", "spectral_gating"], default="none")
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--lr", type=float, default=None)
     parser.add_argument("--clip", type=float, default=1.0)
     parser.add_argument("--data_root", default=".")
