@@ -15,6 +15,8 @@ from torch.utils.data import Dataset, DataLoader
 from audio_preprocessing import get_log_mel_spectrogram
 from analysis import get_analysis
 
+torch.multiprocessing.set_sharing_strategy("file_system")
+
 SAMPLE_RATE = 16000
 
 MODEL_DEFAULTS = {
