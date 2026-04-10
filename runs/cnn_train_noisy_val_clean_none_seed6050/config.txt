@@ -1,0 +1,14 @@
+model: cnn
+train_split: train_noisy
+val_split: val_clean
+test_split: None
+filter_method: none
+epochs: 30
+batch_size: 64
+seed: 6050
+lr: None
+clip: 1.0
+data_root: .
+eval_only: False
+lr_resolved: 0.001
+n_mels: 40
