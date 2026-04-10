@@ -1,0 +1,15 @@
+Using device: cuda
+Run name:      cnn_train_noisy_val_clean_none_seed42
+Output dir:    runs/cnn_train_noisy_val_clean_none_seed42
+Model:         cnn
+Train split:   train_noisy
+Val split:     val_clean
+Test split:    none
+Filter method: none
+Mel bins:      40  |  N_FFT: 400
+Mode:          train + eval
+Epochs:        30  |  Batch size: 64  |  LR: 0.001  |  Clip: 1.0
+Scheduler:     none
+
+Loading training data...
+Loading validation data...
