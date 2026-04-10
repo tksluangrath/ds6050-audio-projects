@@ -4,7 +4,7 @@ from sklearn.metrics import classification_report, confusion_matrix, ConfusionMa
 
 LABEL_VOCAB = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "unknown", "silence"]
 
-def get_analysis(all_preds, all_labels, label_vocab=LABEL_VOCAB):
+def get_analysis(all_preds, all_labels, split_name="test", seed=None, model_name="cnn", label_vocab=LABEL_VOCAB):
     report = classification_report(
         all_labels, 
         all_preds, 
@@ -18,9 +18,9 @@ def get_analysis(all_preds, all_labels, label_vocab=LABEL_VOCAB):
     plt.tight_layout()
 
     # Step out of model folder then save into figures folder
-    figures_dir = os.path.join(os.path.dirname(__file__), "..", "figures")
+    figures_dir = os.path.join(os.path.dirname(__file__), "..", "figures", "confusion_matrix")
     os.makedirs(figures_dir, exist_ok=True)
-    fig.savefig(os.path.join(figures_dir, "confusion_matrix.png"), dpi=150)
+    fig.savefig(os.path.join(figures_dir, f"cm_{model_name}_{split_name}_seed{seed}.png"), dpi=150)
     plt.close(fig)
     
     return report, cm

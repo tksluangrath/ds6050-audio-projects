@@ -78,14 +78,14 @@ class SpeechCommandsDataset(Dataset):
         return spec, label
 
 
-def make_loader(split, data_root, filter_method, batch_size, shuffle, device, n_mels=40, n_fft=400):
+def make_loader(split, data_root, filter_method, batch_size, shuffle, device=None, n_mels=40, n_fft=400):
     dataset = SpeechCommandsDataset(split, data_root, filter_method, n_mels, n_fft)
 
     def collate_fn(batch):
         specs, labels = zip(*batch)
-        return torch.stack(specs).to(device), torch.stack(labels).to(device)
+        return torch.stack(specs), torch.stack(labels)
 
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn, num_workers=os.cpu_count()//2)
 
 
 # Scheduler
@@ -172,7 +172,7 @@ def run(model_cls, train_fn, evaluate_fn, args):
             )
             test_loss, test_acc, test_preds, test_labels = evaluate_fn(model, test_loader, criterion)
             print(f"Test split: {args.test_split} | Loss: {test_loss:.3f} | Acc: {test_acc*100:.2f}%")
-            get_analysis(test_preds, test_labels)
+            get_analysis(test_preds, test_labels, split_name=args.test_split, seed=args.seed, model_name=args.model)
         else:
             print("Loading validation data...")
             val_loader = make_loader(
@@ -198,14 +198,6 @@ def run(model_cls, train_fn, evaluate_fn, args):
         args.val_split, args.data_root, args.filter_method,
         args.batch_size, shuffle=False, device=device, n_mels=n_mels, n_fft=n_fft,
     )
-
-    test_loader = None
-    if args.test_split:
-        print("Loading test data...")
-        test_loader = make_loader(
-            args.test_split, args.data_root, args.filter_method,
-            args.batch_size, shuffle=False, device=device, n_mels=n_mels, n_fft=n_fft,
-        )
 
     optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = build_scheduler(optimizer, args.model, args.epochs)
@@ -233,12 +225,17 @@ def run(model_cls, train_fn, evaluate_fn, args):
         lr_str = f" | LR: {optimizer.param_groups[0]['lr']:.2e}" if scheduler else ""
         print(f"Epoch {epoch+1:02} | {elapsed:.1f}s | Train Loss: {train_loss:.3f} | Val Loss: {val_loss:.3f} | Val Acc: {val_acc*100:.2f}%{lr_str}{marker}")
 
-    if test_loader is not None:
-        print(f"\nLoading best checkpoint for test evaluation...")
-        model.load_state_dict(torch.load(checkpoint_path, map_location=device))
-        test_loss, test_acc, test_preds, test_labels = evaluate_fn(model, test_loader, criterion)
-        print(f"Test Loss: {test_loss:.3f} | Test Acc: {test_acc*100:.2f}%")
-        get_analysis(test_preds, test_labels)
+    # Post Training Evaluation
+    print(f"\nLoading best checkpoint for evaluation...")
+    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
+    
+    for split in ["test_clean", "test_20db", "test_10db", "test_0db", "test_m5db"]:
+        print(f"\nEvaluating {split}...")
+        loader = make_loader(split, args.data_root, args.filter_method, args.batch_size, shuffle=False, device=device, n_mels=n_mels, n_fft=n_fft)
+        loss, acc, preds, labels = evaluate_fn(model, loader, criterion)
+        print(f"{split} | Loss: {loss:.3f} | Acc: {acc*100:.2f}%")
+        get_analysis(preds, labels, split_name=split, seed=args.seed, model_name=args.model)
+        
 
     print("\nDone.")
     tee.close()

@@ -3,10 +3,12 @@ import torch
 
 def train(model, iterator, optimizer, criterion, clip, scheduler=None):
     model.train()
+    device = next(model.parameters()).device
     epoch_loss = 0
 
     for i, batch in enumerate(iterator):
         specs, labels = batch
+        specs, labels = specs.to(device), labels.to(device)
 
         optimizer.zero_grad()
 
