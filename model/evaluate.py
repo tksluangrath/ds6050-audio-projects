@@ -4,6 +4,7 @@ LABEL_VOCAB = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", 
 
 def evaluate(model, iterator, criterion):
     model.eval()
+    device = next(model.parameters()).device
     epoch_loss = 0
     correct = 0
     total = 0
@@ -14,6 +15,7 @@ def evaluate(model, iterator, criterion):
     with torch.no_grad():
         for i, batch in enumerate(iterator):
             specs, labels = batch
+            specs, labels = specs.to(device), labels.to(device)
 
             logits = model(specs)
 
