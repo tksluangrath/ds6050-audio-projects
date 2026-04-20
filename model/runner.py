@@ -49,13 +49,15 @@ class Tee:
 # Dataset
 
 class SpeechCommandsDataset(Dataset):
-    def __init__(self, split: str, data_root: str, filter_method: str, n_mels: int = 40, n_fft: int = 400):
+    def __init__(self, split: str, data_root: str, filter_method: str, n_mels: int = 40, n_fft: int = 400, omega: float = 1.5, delta: float = 0.02):
         metadata_csv = os.path.join(data_root, "data", "processed", split, "metadata.csv")
         self.df = pd.read_csv(metadata_csv)
         self.data_root = data_root
         self.filter_method = filter_method
         self.n_mels = n_mels
         self.n_fft = n_fft
+        self.omega = omega
+        self.delta = delta
 
     def __len__(self):
         return len(self.df)
@@ -75,13 +77,13 @@ class SpeechCommandsDataset(Dataset):
         else:
             waveform = waveform[:SAMPLE_RATE]
 
-        spec = get_log_mel_spectrogram(waveform, filter_method=self.filter_method, n_mels=self.n_mels, n_fft=self.n_fft)
+        spec = get_log_mel_spectrogram(waveform, filter_method=self.filter_method, n_mels=self.n_mels, n_fft=self.n_fft, omega=self.omega, delta=self.delta)
         label = torch.tensor(int(row["label_idx"]), dtype=torch.long)
         return spec, label
 
 
-def make_loader(split, data_root, filter_method, batch_size, shuffle, device=None, n_mels=40, n_fft=400):
-    dataset = SpeechCommandsDataset(split, data_root, filter_method, n_mels, n_fft)
+def make_loader(split, data_root, filter_method, batch_size, shuffle, device=None, n_mels=40, n_fft=400, omega=1.5, delta=0.02, num_workers=min(4, os.cpu_count())):
+    dataset = SpeechCommandsDataset(split, data_root, filter_method, n_mels, n_fft, omega, delta)
 
     def collate_fn(batch):
         specs, labels = zip(*batch)
@@ -265,7 +267,7 @@ def parse_args():
 def main():
     from train import train
     from evaluate import evaluate
-    from CNN_Model import KeywordSpottingCNN
+    from CNN import KeywordSpottingCNN
     from AST import AST
 
     args = parse_args()
