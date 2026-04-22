@@ -2,7 +2,7 @@ model: cnn
 train_split: train_noisy
 val_split: val_clean
 test_split: None
-filter_method: none
+filter_method: bandpass
 epochs: 30
 batch_size: 64
 seed: 2026

@@ -82,14 +82,28 @@ class SpeechCommandsDataset(Dataset):
         return spec, label
 
 
-def make_loader(split, data_root, filter_method, batch_size, shuffle, device=None, n_mels=40, n_fft=400, omega=1.5, delta=0.02, num_workers=min(4, os.cpu_count())):
+def make_loader(split, data_root, filter_method, batch_size, shuffle, device=None, n_mels=40, n_fft=400, omega=1.5, delta=0.02, num_workers=None):
+    if num_workers is None:
+        slurm_cpus = os.environ.get("SLURM_CPUS_PER_TASK")
+        num_workers = min(4, int(slurm_cpus) - 1 if slurm_cpus else 2)
+        num_workers = max(1, num_workers)
+
     dataset = SpeechCommandsDataset(split, data_root, filter_method, n_mels, n_fft, omega, delta)
 
     def collate_fn(batch):
         specs, labels = zip(*batch)
         return torch.stack(specs), torch.stack(labels)
 
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn, num_workers=os.cpu_count()//2)
+    return DataLoader(
+        dataset, 
+        batch_size=batch_size, 
+        shuffle=shuffle, 
+        collate_fn=collate_fn, 
+        num_workers=num_workers, 
+        persistent_workers=num_workers>0, 
+        pin_memory=True, 
+        prefetch_factor=2 if num_workers > 0 else None
+    )
 
 
 # Scheduler
@@ -103,6 +117,19 @@ def build_scheduler(optimizer, model_type, epochs):
     cosine = CosineAnnealingLR(optimizer, T_max=cosine_epochs, eta_min=1e-7)
     return SequentialLR(optimizer, schedulers=[warmup, cosine], milestones=[warmup_epochs])
 
+def load_best_sweep_params(model_name, data_root="."):
+    csv_path = os.path.join(data_root, "runs", f"sweep_spectral_gating_{model_name}", f"{model_name}_results.csv")
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(
+            f"No sweep results at {csv_path}. Run sweep.py first"
+        )
+    df = pd.read_csv(csv_path)
+    best = df.loc[df["val_acc"].idxmax()]
+    omega = float(best["omega"])
+    delta = float(best["delta"])
+    print(f"[sweep] Loaded best params for {model_name}: omega = {omega}, delta = {delta}")
+    return omega, delta
+                
 
 # Main runner
 
@@ -124,7 +151,11 @@ def run(model_cls, train_fn, evaluate_fn, args):
     lr = args.lr if args.lr is not None else defaults["lr"]
 
     # Set up output directory (consistent name regardless of eval_only)
-    run_name = f"{args.model}_{args.train_split}_{args.val_split}_{args.filter_method}_seed{args.seed}"
+    if args.filter_method == "spectral_gating":
+        param_tag = f"sg_w{args.omega}_d{args.delta}"
+    else:
+        param_tag = args.filter_method
+    run_name = f"{args.model}_{args.train_split}_{args.val_split}_{param_tag}_seed{args.seed}"
     out_dir = os.path.join("runs", run_name)
     os.makedirs(out_dir, exist_ok=True)
 
@@ -261,6 +292,8 @@ def parse_args():
     parser.add_argument("--clip", type=float, default=1.0)
     parser.add_argument("--data_root", default=".")
     parser.add_argument("--eval_only", action="store_true")
+    parser.add_argument("--omega", type=float, default=None)
+    parser.add_argument("--delta", type=float, default=None)
     return parser.parse_args()
 
 
@@ -272,6 +305,20 @@ def main():
 
     args = parse_args()
     model_cls = KeywordSpottingCNN if args.model == "cnn" else AST
+
+    for method in ["none", "bandpass"]:
+        args.filter_method = method
+        args.omega, args.delta = 1.5, 2.0
+        run (model_cls, train, evaluate, args)
+
+    # Spectral gating default (pre-tuning)
+    args.filter_method = "spectral_gating"
+    args.omega, args.delta = 1.5, 0.02
+    run(model_cls, train, evaluate, args)
+
+    # Spectral gating tuned (post-tuning)
+    args.filter_method = "spectral_gating"
+    args.omega, args.delta = load_best_sweep_params(args.model, args.data_root)
     run(model_cls, train, evaluate, args)
 
 
