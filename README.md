@@ -3,7 +3,7 @@
 > **Does frequency-domain noise suppression improve keyword spotting robustness under real-world noise conditions?**
 
 
-This repo holds the code, experiments, and paper for Group 09's final project in DS 6050 (Deep Learning) at the University of Virginia. We test whether spectral preprocessing (spectral gating and a fixed bandpass filter) makes compact keyword spotting (KWS) modles more robust at different SNRs. 
+This repo holds the code, experiments, and paper for Group 09's final project in DS 6050 (Deep Learning) at the University of Virginia. We test whether spectral preprocessing (spectral gating and a fixed bandpass filter) makes compact keyword spotting (KWS) models more robust at different SNRs. 
 
 
 **Authors:** Terrance Luangrath, Samantha Asefi, Lucas Anderson, Tomas Tsega
@@ -14,7 +14,7 @@ This repo holds the code, experiments, and paper for Group 09's final project in
 
 Voice assistants struggle in noisy rooms. HVAC hum, crowd babble, music in the background. We wanted to know whether suppressing noise in the frequency domain (before the Mel spectrogram step) actually helps, and whether a compact CNN and an Audio Spectrogram Transformer (AST) react the same way to it. They don't.
 
-**What we found**
+**What we found:**
 
 **Research question:** Can explicit frequency-domain noise suppression, applied as a deterministic preprocessing step, improve keyword spotting accuracy across varying noise types and signal-to-noise ratios?
 
