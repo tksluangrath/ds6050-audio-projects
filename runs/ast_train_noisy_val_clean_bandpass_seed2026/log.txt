@@ -1,0 +1,64 @@
+Using device: cuda
+Run name:      ast_train_noisy_val_clean_bandpass_seed2026
+Output dir:    runs/ast_train_noisy_val_clean_bandpass_seed2026
+Model:         ast
+Train split:   train_noisy
+Val split:     val_clean
+Test split:    none
+Filter method: bandpass
+Mel bins:      128  |  N_FFT: 1024
+Mode:          train + eval
+Epochs:        30  |  Batch size: 64  |  LR: 1e-05  |  Clip: 1.0
+Scheduler:     warmup(5) + cosine
+
+Loading training data...
+Loading validation data...
+Epoch 01 | 313.1s | Train Loss: 1.843 | Val Loss: 1.684 | Val Acc: 60.20% | LR: 2.08e-06 *
+Epoch 02 | 312.9s | Train Loss: 1.337 | Val Loss: 1.012 | Val Acc: 67.30% | LR: 4.06e-06 *
+Epoch 03 | 313.1s | Train Loss: 0.981 | Val Loss: 0.654 | Val Acc: 78.76% | LR: 6.04e-06 *
+Epoch 04 | 312.9s | Train Loss: 0.742 | Val Loss: 0.486 | Val Acc: 84.10% | LR: 8.02e-06 *
+Epoch 05 | 312.8s | Train Loss: 0.574 | Val Loss: 0.402 | Val Acc: 86.95% | LR: 1.00e-05 *
+Epoch 06 | 313.1s | Train Loss: 0.438 | Val Loss: 0.375 | Val Acc: 87.78% | LR: 9.96e-06 *
+Epoch 07 | 313.1s | Train Loss: 0.293 | Val Loss: 0.348 | Val Acc: 88.67% | LR: 9.84e-06 *
+Epoch 08 | 313.2s | Train Loss: 0.164 | Val Loss: 0.356 | Val Acc: 89.47% | LR: 9.65e-06
+Epoch 09 | 313.1s | Train Loss: 0.074 | Val Loss: 0.387 | Val Acc: 89.53% | LR: 9.39e-06
+Epoch 10 | 312.8s | Train Loss: 0.031 | Val Loss: 0.436 | Val Acc: 89.25% | LR: 9.05e-06
+Epoch 11 | 312.8s | Train Loss: 0.014 | Val Loss: 0.489 | Val Acc: 89.93% | LR: 8.66e-06
+Epoch 12 | 313.0s | Train Loss: 0.007 | Val Loss: 0.510 | Val Acc: 90.02% | LR: 8.21e-06
+Epoch 13 | 313.0s | Train Loss: 0.004 | Val Loss: 0.561 | Val Acc: 90.30% | LR: 7.70e-06
+Epoch 14 | 313.0s | Train Loss: 0.003 | Val Loss: 0.576 | Val Acc: 90.63% | LR: 7.16e-06
+Epoch 15 | 312.5s | Train Loss: 0.002 | Val Loss: 0.599 | Val Acc: 90.47% | LR: 6.58e-06
+Epoch 16 | 312.8s | Train Loss: 0.001 | Val Loss: 0.634 | Val Acc: 90.40% | LR: 5.98e-06
+Epoch 17 | 313.0s | Train Loss: 0.001 | Val Loss: 0.667 | Val Acc: 89.78% | LR: 5.36e-06
+Epoch 18 | 313.2s | Train Loss: 0.001 | Val Loss: 0.682 | Val Acc: 90.24% | LR: 4.74e-06
+Epoch 19 | 313.1s | Train Loss: 0.000 | Val Loss: 0.714 | Val Acc: 90.15% | LR: 4.12e-06
+Epoch 20 | 312.8s | Train Loss: 0.000 | Val Loss: 0.726 | Val Acc: 90.67% | LR: 3.52e-06
+Epoch 21 | 313.0s | Train Loss: 0.000 | Val Loss: 0.690 | Val Acc: 90.90% | LR: 2.94e-06
+Epoch 22 | 313.0s | Train Loss: 0.000 | Val Loss: 0.747 | Val Acc: 91.09% | LR: 2.40e-06
+Epoch 23 | 313.2s | Train Loss: 0.000 | Val Loss: 0.727 | Val Acc: 90.34% | LR: 1.89e-06
+Epoch 24 | 312.8s | Train Loss: 0.000 | Val Loss: 0.707 | Val Acc: 90.87% | LR: 1.44e-06
+Epoch 25 | 312.7s | Train Loss: 0.000 | Val Loss: 0.712 | Val Acc: 91.01% | LR: 1.05e-06
+Epoch 26 | 312.7s | Train Loss: 0.000 | Val Loss: 0.717 | Val Acc: 90.97% | LR: 7.12e-07
+Epoch 27 | 313.0s | Train Loss: 0.000 | Val Loss: 0.721 | Val Acc: 90.93% | LR: 4.48e-07
+Epoch 28 | 313.3s | Train Loss: 0.000 | Val Loss: 0.724 | Val Acc: 91.05% | LR: 2.56e-07
+Epoch 29 | 312.6s | Train Loss: 0.000 | Val Loss: 0.728 | Val Acc: 90.99% | LR: 1.39e-07
+Epoch 30 | 312.6s | Train Loss: 0.000 | Val Loss: 0.730 | Val Acc: 91.08% | LR: 1.00e-07
+
+Loading best checkpoint for evaluation...
+
+Evaluating test_clean...
+test_clean | Loss: 0.346 | Acc: 88.69%
+
+Evaluating test_20db...
+test_20db | Loss: 0.377 | Acc: 87.87%
+
+Evaluating test_10db...
+test_10db | Loss: 0.466 | Acc: 85.17%
+
+Evaluating test_0db...
+test_0db | Loss: 0.718 | Acc: 77.94%
+
+Evaluating test_m5db...
+test_m5db | Loss: 0.905 | Acc: 72.22%
+
+Done.

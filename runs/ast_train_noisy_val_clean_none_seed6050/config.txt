@@ -10,5 +10,7 @@ lr: None
 clip: 1.0
 data_root: .
 eval_only: False
+omega: 1.5
+delta: 0.02
 lr_resolved: 1e-05
 n_mels: 128

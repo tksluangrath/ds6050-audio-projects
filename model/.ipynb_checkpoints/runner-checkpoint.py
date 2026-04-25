@@ -308,7 +308,7 @@ def main():
 
     for method in ["none", "bandpass"]:
         args.filter_method = method
-        args.omega, args.delta = 1.5, 2.0
+        args.omega, args.delta = 1.5, 0.02
         run (model_cls, train, evaluate, args)
 
     # Spectral gating default (pre-tuning)
