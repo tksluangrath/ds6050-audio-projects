@@ -90,8 +90,8 @@ We trained eight configurations: two architectures (CNN, AST) $\times$ two train
 Python 3.10+, two NVIDIA GPUs recommended (we used 2x RTX 3090 on UVA Rivanna).
 
 ```bash
-git clone
-cd
+git clone https://github.com/tksluangrath/noise-robust-keyword-spotting/blob/main/README.md
+cd https://github.com/tksluangrath/noise-robust-keyword-spotting/blob/main/README.md
 pip install -r requirements.txt
 
 # Download dataset
@@ -104,11 +104,9 @@ python model/sweep.py --model ast
 # Train (one GPU per model)
 CUDA_VISIBLE_DEVICES=0 python model/runner.py --model cnn --seed 6050
 CUDA_VISIBLE_DEVICES=1 python model/runner.py --model ast --seed 6050
-
 ```
 
 Each configuration writes to `runs/{model}_{splits}_{filter}_seed{N}/` - checkpoint, log, config, and the per-splt analysis from `get_analysis`.
-
 
 Results land in `results/` as CSSV and PNG.
 
