@@ -1,0 +1,9 @@
+torch
+torchaudio
+numpy
+pandas
+soundfile
+datasets<3.0
+scikit-learn
+matplotlib
+timm
